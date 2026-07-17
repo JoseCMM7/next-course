@@ -9,7 +9,13 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL!, {
+  ssl: 'require',
+  prepare: false,
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
 
 export async function fetchRevenue() {
   try {
@@ -19,7 +25,24 @@ export async function fetchRevenue() {
     // console.log('Fetching revenue data...');
     // await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const data = await sql<Revenue[]>`SELECT * FROM revenue`;
+    const data = await sql<Revenue[]>`
+      SELECT *
+      FROM revenue
+      ORDER BY CASE month
+        WHEN 'Jan' THEN 1
+        WHEN 'Feb' THEN 2
+        WHEN 'Mar' THEN 3
+        WHEN 'Apr' THEN 4
+        WHEN 'May' THEN 5
+        WHEN 'Jun' THEN 6
+        WHEN 'Jul' THEN 7
+        WHEN 'Aug' THEN 8
+        WHEN 'Sep' THEN 9
+        WHEN 'Oct' THEN 10
+        WHEN 'Nov' THEN 11
+        WHEN 'Dec' THEN 12
+      END
+    `;
 
     // console.log('Data fetch completed after 3 seconds.');
 
